@@ -1,0 +1,249 @@
+from vpython import *
+import pygame
+from time import *
+from math import *
+from random import*
+import os
+
+scene = canvas(title="Planet battle")
+
+changement=0
+
+pygame.init()
+screen = pygame.display.set_mode((30, 20))
+
+joueur=int(input("Numéro de joueur ?"))
+devant=1
+inclinaison=0
+inclinaisonc=0
+largeur=800
+rall=True
+tirs=[]
+dirtirs=[]
+deplacement=2
+astres=[]
+class Asteroides():
+        def __init__(self,rayon,x,y,z):
+            self.rayon=rayon
+            self.x=x
+            self.y=y
+            self.z=z
+            self.astre=sphere(pos=vector(x,y,z),radius=rayon,color=color.cyan)
+
+            # initialisation vaisseau
+
+if joueur==1:
+    vaisseau=sphere(pos=vector(10,10,10),radius=4,color=color.blue)
+    #création fichier terrain
+    with open('fichierterrain.txt', "w") as file:
+         for loop in range(300):
+            file.write(str(randint(1,20))+'\n')
+            file.write(str(randint(1,largeur))+'\n')
+            file.write(str(randint(1,largeur))+'\n')
+            file.write(str(randint(1,largeur))+'\n')
+         file.close()
+
+    
+a=False
+while a==False:
+    a= os.path.exists("fichierterrain.txt")
+# initialisation terrain
+    
+with open('fichierterrain.txt', "r") as file:
+         for loop in range(300):
+            rayona=int(file.readline())
+            xa=int(file.readline().strip())
+            ya=int(file.readline().strip())
+            za=int(file.readline().strip())
+            baka=Asteroides(rayona,xa,ya,za)
+            astres.append(baka)
+         file.close()
+
+
+
+
+
+scene.camera.pos=vector(0,-3,0)
+boite=box(pos=vector(largeur/2,largeur/2,largeur/2),length=largeur,height=largeur,width=largeur,color=color.white)
+
+if joueur==2:
+    vaisseau=sphere(pos=vector(790,790,790),radius=4,color=color.blue)
+running=True
+
+# Attend les infos de l'autre joueur
+
+# boucle
+while running:
+    rate(30)
+
+    #Créations de fichiers mémoire
+    if joueur==1:
+        with open('fichier1j1.txt', "w") as file:
+            file.write(str(vaisseau.pos.x)+'\n')
+            file.write(str(vaisseau.pos.y)+'\n')
+            file.write(str(vaisseau.pos.z)+'\n')
+            file.write(str(len(tirs))+'\n')
+        dossier="fichier1j2.txt"
+        file.close()
+    if joueur==2:
+        with open('fichier1j2.txt', "w") as file:
+            file.write(str(vaisseau.pos.x)+'\n')
+            file.write(str(vaisseau.pos.y)+'\n')
+            file.write(str(vaisseau.pos.z)+'\n')
+            file.write(str(len(tirs))+'\n')
+        dossier="fichier1j1.txt"
+        file.close()
+# récupération position ennemie
+    if os.path.exists(dossier):
+        with open(dossier, "r") as file:
+         
+            xe=float(file.readline().strip())
+            ye=float(file.readline().strip())
+            ze=float(file.readline().strip())
+            nb=int(file.readline().strip())
+            ennemi=sphere(pos=vector(xe,ye,ze), radius=4, color=color.red)
+        file.close()
+
+    scene.camera.follow(vaisseau)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    keys=pygame.key.get_pressed()
+    if keys[pygame.K_h]:
+        running=False
+    if keys[pygame.K_LEFT]:
+        inclinaison+=2
+    if keys[pygame.K_RIGHT]:
+        inclinaison-=2
+    if inclinaison<0:
+        inclinaison=360+inclinaison
+    if inclinaison>359:
+        inclinaison=inclinaison-360
+
+# créer tir de balles :
+    if keys[pygame.K_SPACE] and time()-changement>0.4:
+        changement=time()
+        tirv=sphere(pos=vector(vaisseau.pos.x,vaisseau.pos.y,vaisseau.pos.z),radius=1,color=color.blue)
+        tirs.append(tirv)
+        dirtirs.append(bc)
+        dirtirs.append(ab)
+
+# avancée de la balle :
+
+    for h in range(len(tirs)):
+        balle=tirs[h]
+        xb=dirtirs[h*2]
+        zb=dirtirs[h*2+1]
+        balle.pos.x+=xb
+        balle.pos.z+=zb
+
+    
+
+# calcul du vecteur de rotation :
+    ab=cos(inclinaison*pi/180)*deplacement
+    bc=sin(inclinaison*pi/180)*deplacement
+
+    if keys[pygame.K_UP]:
+        vaisseau.pos.x+=bc
+        vaisseau.pos.z+=ab
+
+
+    if keys[pygame.K_DOWN]:
+        vaisseau.pos.x-=bc
+        vaisseau.pos.z-=ab
+    
+    if keys[pygame.K_o]:
+        vaisseau.pos.y+=deplacement
+    if keys[pygame.K_l]:
+        vaisseau.pos.y-=deplacement
+    if keys[pygame.K_e]:
+        scene.range-=0.2
+    if keys[pygame.K_d]:
+        scene.range+=0.2
+    
+    # check de collisions de balles ennemies : + création fichier de sauvegarde balles
+
+    if joueur==1:
+        with open('fichier2j1.txt', "w") as file:
+            for loop in range(len(tirs)):
+                f=tirs[loop]
+                file.write(str(f.pos.x)+"\n")
+                file.write(str(f.pos.y)+"\n")
+                file.write(str(f.pos.z)+"\n")
+        dossier="fichier2j2.txt"
+        file.close()
+    if joueur==2:
+        with open('fichier2j2.txt', "w") as file:
+            for loop in range(len(tirs)):
+                f=tirs[loop]
+                file.write(str(f.pos.x)+"\n")
+                file.write(str(f.pos.y)+"\n")
+                file.write(str(f.pos.z)+"\n")
+        dossier="fichier2j1.txt"
+        file.close()
+
+    if os.path.exists(dossier):
+      for loop in range(nb):
+        with open(dossier, "r") as file:
+         
+            xb=float(file.readline().strip())
+            yb=float(file.readline().strip())
+            zb=float(file.readline().strip())
+            balle_ennemi=sphere(pos=vector(xb,yb,zb), radius=1, color=color.red)
+            m=sqrt((balle_ennemi.pos.x-vaisseau.pos.x)**2+(balle_ennemi.pos.y-vaisseau.pos.y)**2+(balle_ennemi.pos.z-vaisseau.pos.z)**2)
+            if m<5:
+                print("Touché par balle ennemie !!!")
+        file.close()
+
+
+    # check de collisions astéroïdes + rallentissement des calculs ( tous les 2 frames )
+    if rall==True:
+     '''rall=False'''
+     for a in range (len(astres)):
+        p=astres[a]
+        k=sqrt((p.astre.pos.x-vaisseau.pos.x)**2+(p.astre.pos.y-vaisseau.pos.y)**2+(p.astre.pos.z-vaisseau.pos.z)**2)
+        if int(k)<=p.astre.radius+vaisseau.radius:
+            if keys[pygame.K_DOWN]:
+                vaisseau.pos.x+=bc
+                vaisseau.pos.z+=ab
+
+
+            if keys[pygame.K_UP]:
+                vaisseau.pos.x-=bc
+                vaisseau.pos.z-=ab
+        for h in range(len(tirs) - 1, -1, -1):  # Parcours à l'envers
+            balle = tirs[h]
+            k = sqrt((p.astre.pos.x - balle.pos.x) ** 2 + (p.astre.pos.y - balle.pos.y) ** 2 + (p.astre.pos.z - balle.pos.z) ** 2)
+    
+            if balle.pos.x <= 0 or balle.pos.x >= 800 or balle.pos.y <= 0 or balle.pos.y >= 800 or balle.pos.z < 0 or balle.pos.z >= 800:
+                del tirs[h]
+                del dirtirs[h * 2]  
+                del dirtirs[h * 2]  # On supprime bien 2 éléments (après correction des indices)
+                balle.visible = False
+            elif int(k) <= p.astre.radius + balle.radius:
+                del tirs[h]
+                del dirtirs[h * 2]
+                del dirtirs[h * 2]  # Même chose ici
+                balle.visible = False
+
+    # check de collision bords du terrain
+     if vaisseau.pos.x<=0 or vaisseau.pos.x>=800 or vaisseau.pos.y<=0 or vaisseau.pos.y>=800 or vaisseau.pos.z<0 or vaisseau.pos.z>=800:
+            if keys[pygame.K_DOWN]:
+                vaisseau.pos.x+=bc
+                vaisseau.pos.z+=ab
+
+
+            if keys[pygame.K_UP]:
+                vaisseau.pos.x-=bc
+                vaisseau.pos.z-=ab
+    else :
+        rall=True    
+            
+ 
+   
+
+    
+    '''scene.camera.pos= vector(vaisseau.pos.x+(-30*devant),vaisseau.pos.y+2,vaisseau.pos.z)
+    scene.center=vaisseau.pos'''
+
+
